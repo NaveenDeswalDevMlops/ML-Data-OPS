@@ -1121,6 +1121,7 @@ elif page == "Prediction":
                     "risk_level": risk,
                 }
                 save_prediction(record)
+                history = get_prediction_history()
 
                 prob = probability_value
                 r1, r2 = st.columns([1, 3])
@@ -1134,8 +1135,8 @@ elif page == "Prediction":
                     st.progress(min(max(prob, 0.0), 1.0))
             except Exception as exc:
                 st.error(f"Prediction failed: {exc}")
-
-    history = get_prediction_history()
+    else:
+        history = get_prediction_history()
     if not history.empty:
         st.markdown("---")
         section("Recent predictions")
