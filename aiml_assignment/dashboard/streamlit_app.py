@@ -641,7 +641,8 @@ if page == "Home":
                         latest_metrics = get_mlflow_run_metrics(run_id) or {}
 
     # ---------------- Row 1 · KPI tiles ----------------
-    k1, k2, k3, k4 = st.columns(4, gap="medium")
+    total_predictions = len(history)
+    k1, k2, k3, k4, k5 = st.columns(5, gap="medium")
     k1.markdown(kpi_tile(
         "🧠", "Active Model", model_name,
         sub=f"Version {metadata.get('model_version', 'unknown')}",
@@ -664,6 +665,13 @@ if page == "Home":
                            infer_state(api_state)),
     ), unsafe_allow_html=True)
     k4.markdown(kpi_tile(
+        "📊", "Total Predictions", str(total_predictions),
+        sub="Loaded from prediction history",
+        color="#10B981" if total_predictions else "#F59E0B",
+        badge=status_badge("Ready" if total_predictions else "Waiting",
+                           "ok" if total_predictions else "warn"),
+    ), unsafe_allow_html=True)
+    k5.markdown(kpi_tile(
         "🔄", "Data Pipeline", pipe_state.capitalize(),
         sub=f"Last run · {last_run}",
         color="#FF4B4B" if infer_state(pipe_state) == "err" else "#F59E0B" if infer_state(pipe_state) == "warn" else "#10B981",
