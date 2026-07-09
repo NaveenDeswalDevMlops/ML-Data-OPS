@@ -1,0 +1,53 @@
+column,dtype
+Age,int64
+Avg Monthly GB Download,int64
+Avg Monthly Long Distance Charges,float64
+Churn Category,object
+Churn Reason,object
+Churn Score,int64
+City,object
+CLTV,int64
+Contract,object
+Country,object
+Customer ID,object
+Customer Status,object
+Dependents,int64
+Device Protection Plan,int64
+Gender,object
+Internet Service,int64
+Internet Type,object
+Lat Long,object
+Latitude,float64
+Longitude,float64
+Married,int64
+MonthlyCharges,float64
+Multiple Lines,int64
+Number of Dependents,int64
+Number of Referrals,int64
+Offer,object
+Online Backup,int64
+Online Security,int64
+Paperless Billing,int64
+Partner,int64
+Payment Method,object
+Phone Service,int64
+Population,int64
+Premium Tech Support,int64
+Quarter,object
+Referred a Friend,int64
+Satisfaction Score,int64
+Senior Citizen,int64
+State,object
+Streaming Movies,int64
+Streaming Music,int64
+Streaming TV,int64
+tenure,int64
+TotalCharges,float64
+Total Extra Data Charges,int64
+Total Long Distance Charges,float64
+Total Refunds,float64
+Total Revenue,float64
+Under 30,int64
+Unlimited Data,int64
+Zip Code,int64
+Churn,int64

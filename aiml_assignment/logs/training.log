@@ -1,0 +1,14 @@
+2026-07-09 10:39:49,114 INFO ml_pipeline MLflow tracking URI set to http://mlflow:5000
+2026-07-09 10:39:49,115 INFO ml_pipeline MLflow experiment set to Customer_Attrition_Prediction
+2026-07-09 10:39:49,115 INFO ml_pipeline Starting ML pipeline
+2026-07-09 10:39:49,115 INFO ml_pipeline Loading processed data from data/processed_data.csv
+2026-07-09 10:39:52,766 INFO ml_pipeline Run RandomForest completed with metrics: {'accuracy': 0.7752365930599369, 'precision': 0.6060606060606061, 'recall': 0.46920821114369504, 'f1': 0.5289256198347108, 'roc_auc': 0.7801187572562455}
+2026-07-09 10:39:54,077 INFO ml_pipeline Run LogisticRegression completed with metrics: {'accuracy': 0.7783911671924291, 'precision': 0.625, 'recall': 0.4398826979472141, 'f1': 0.5163511187607573, 'roc_auc': 0.8053396476509536}
+2026-07-09 10:39:54,084 INFO ml_pipeline Pipeline complete. Best Model: RandomForest (F1 Score: 0.5289)
+2026-07-09 11:38:09,016 INFO ml_pipeline MLflow tracking URI set to http://mlflow:5000
+2026-07-09 11:38:09,017 INFO ml_pipeline MLflow experiment set to Customer_Attrition_Prediction
+2026-07-09 11:38:09,017 INFO ml_pipeline Starting ML pipeline
+2026-07-09 11:38:09,017 INFO ml_pipeline Loading processed data from data/processed_data.csv
+2026-07-09 11:38:13,946 INFO ml_pipeline Run RandomForest completed with metrics: {'accuracy': 0.7752365930599369, 'precision': 0.6060606060606061, 'recall': 0.46920821114369504, 'f1': 0.5289256198347108, 'roc_auc': 0.7801187572562455}
+2026-07-09 11:38:16,950 INFO ml_pipeline Run LogisticRegression completed with metrics: {'accuracy': 0.7783911671924291, 'precision': 0.625, 'recall': 0.4398826979472141, 'f1': 0.5163511187607573, 'roc_auc': 0.8053396476509536}
+2026-07-09 11:38:16,966 INFO ml_pipeline Pipeline complete. Best Model: RandomForest (F1 Score: 0.5289)

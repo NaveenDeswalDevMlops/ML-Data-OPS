@@ -1,0 +1,92 @@
+feature_1,feature_2,cramers_v
+Churn Category,Churn Reason,0.9939203561814222
+Churn Category,City,0.13578260536190398
+Churn Category,Contract,0.3182322494354318
+Churn Category,Country,0.0
+Churn Category,Customer ID,0.0
+Churn Category,Customer Status,0.706436537641441
+Churn Category,Gender,0.0
+Churn Category,Internet Type,0.17324683440539526
+Churn Category,Lat Long,0.1305938725050097
+Churn Category,Offer,0.12336581827720093
+Churn Category,Payment Method,0.14280979040332553
+Churn Category,Quarter,0.0
+Churn Category,State,0.0
+Churn Reason,City,0.026940087829782782
+Churn Reason,Contract,0.3169327252731981
+Churn Reason,Country,0.0
+Churn Reason,Customer ID,0.0
+Churn Reason,Customer Status,0.7039174405748367
+Churn Reason,Gender,0.0
+Churn Reason,Internet Type,0.17692123702248858
+Churn Reason,Lat Long,0.07906751171070882
+Churn Reason,Offer,0.12088377939601469
+Churn Reason,Payment Method,0.14763782953874835
+Churn Reason,Quarter,0.0
+Churn Reason,State,0.0
+City,Contract,0.05063199935770377
+City,Country,0.0
+City,Customer ID,0.0
+City,Customer Status,0.126160564914885
+City,Gender,0.0
+City,Internet Type,0.06968009653452024
+City,Lat Long,0.9096090011822924
+City,Offer,0.0
+City,Payment Method,0.061627891045403
+City,Quarter,0.0
+City,State,0.0
+Contract,Country,0.0
+Contract,Customer ID,0.0
+Contract,Customer Status,0.37507346100090716
+Contract,Gender,0.0
+Contract,Internet Type,0.16486966243506515
+Contract,Lat Long,0.0
+Contract,Offer,0.3398653905143926
+Contract,Payment Method,0.11725978419466962
+Contract,Quarter,0.0
+Contract,State,0.0
+Country,Customer ID,0.0
+Country,Customer Status,0.0
+Country,Gender,0.0
+Country,Internet Type,0.0
+Country,Lat Long,0.0
+Country,Offer,0.0
+Country,Payment Method,0.0
+Country,Quarter,0.0
+Country,State,0.0
+Customer ID,Customer Status,0.0
+Customer ID,Gender,0.0
+Customer ID,Internet Type,0.0
+Customer ID,Lat Long,0.0
+Customer ID,Offer,0.0
+Customer ID,Payment Method,0.0
+Customer ID,Quarter,0.0
+Customer ID,State,0.0
+Customer Status,Gender,0.0
+Customer Status,Internet Type,0.21789663830997244
+Customer Status,Lat Long,0.09958361431276881
+Customer Status,Offer,0.28137061457052265
+Customer Status,Payment Method,0.15458354153710716
+Customer Status,Quarter,0.0
+Customer Status,State,0.0
+Gender,Internet Type,0.0
+Gender,Lat Long,0.0
+Gender,Offer,0.018582877342994897
+Gender,Payment Method,0.0
+Gender,Quarter,0.0
+Gender,State,0.0
+Internet Type,Lat Long,0.08281300141482885
+Internet Type,Offer,0.015404662946980447
+Internet Type,Payment Method,0.23660216025488467
+Internet Type,Quarter,0.0
+Internet Type,State,0.0
+Lat Long,Offer,0.0
+Lat Long,Payment Method,0.0
+Lat Long,Quarter,0.0
+Lat Long,State,0.0
+Offer,Payment Method,0.06450229110644135
+Offer,Quarter,0.0
+Offer,State,0.0
+Payment Method,Quarter,0.0
+Payment Method,State,0.0
+Quarter,State,0.0
