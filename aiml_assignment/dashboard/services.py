@@ -124,15 +124,25 @@ def _mlflow_entity_to_dict(entity: Any) -> Dict[str, Any]:
     if hasattr(entity, "to_dictionary"):
         return entity.to_dictionary()
     if hasattr(entity, "to_dict"):
-        return entity.to_dict()
-    if hasattr(entity, "__dict__"):
         try:
-            return dict(entity.__dict__)
+            return entity.to_dict()
         except Exception:
             pass
+
+    if hasattr(entity, "__dict__"):
+        try:
+            # Use public property names when available
+            entity_dict = {k: v for k, v in entity.__dict__.items() if not k.startswith("_")}
+            if entity_dict:
+                return entity_dict
+        except Exception:
+            pass
+
     result: Dict[str, Any] = {}
     for key in dir(entity):
         if key.startswith("_"):
+            continue
+        if key in {"to_dictionary", "to_dict", "to_proto", "from_dictionary", "from_proto"}:
             continue
         try:
             value = getattr(entity, key)
@@ -140,6 +150,25 @@ def _mlflow_entity_to_dict(entity: Any) -> Dict[str, Any]:
             continue
         if callable(value):
             continue
+        if hasattr(value, "__dict__") or isinstance(value, (list, tuple, dict)):
+            # Recursively convert nested MLflow entity objects
+            try:
+                if isinstance(value, dict):
+                    result[key] = {
+                        sub_k: _mlflow_entity_to_dict(sub_v) if hasattr(sub_v, "__dict__") else sub_v
+                        for sub_k, sub_v in value.items()
+                    }
+                    continue
+                if isinstance(value, (list, tuple)):
+                    result[key] = [
+                        _mlflow_entity_to_dict(item) if hasattr(item, "__dict__") else item
+                        for item in value
+                    ]
+                    continue
+                result[key] = _mlflow_entity_to_dict(value)
+                continue
+            except Exception:
+                pass
         result[key] = value
     return result
 
