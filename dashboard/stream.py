@@ -280,6 +280,68 @@ CUSTOM_CSS = """
     .stProgress > div > div > div > div {
         background: linear-gradient(90deg, #3B82F6, #6366F1);
     }
+
+    /* ---------- Tiled dashboard (bordered containers as cards) ---------- */
+    [data-testid="stVerticalBlockBorderWrapper"] {
+        background: var(--surface);
+        border: 1px solid var(--border) !important;
+        border-radius: 16px;
+        box-shadow: var(--shadow);
+        padding: 6px 6px;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    [data-testid="stVerticalBlockBorderWrapper"]:hover {
+        box-shadow: 0 4px 8px rgba(16,24,40,0.06), 0 14px 34px rgba(16,24,40,0.10);
+    }
+
+    /* KPI tiles */
+    .kpi-tile {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 18px 20px;
+        box-shadow: var(--shadow);
+        height: 100%;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    .kpi-tile:hover { transform: translateY(-3px); box-shadow: 0 6px 12px rgba(16,24,40,0.08), 0 16px 38px rgba(16,24,40,0.12); }
+    .kpi-tile .accent-bar {
+        position: absolute; top: 0; left: 0; right: 0; height: 4px;
+        background: linear-gradient(90deg, var(--tile-color, #3B82F6), transparent 90%);
+        opacity: 0.9;
+    }
+    .kpi-tile .kpi-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .kpi-tile .kpi-icon {
+        width: 40px; height: 40px; border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 19px;
+        background: color-mix(in srgb, var(--tile-color, #3B82F6) 12%, white);
+    }
+    .kpi-tile .kpi-label {
+        text-transform: uppercase; letter-spacing: 0.1em;
+        font-size: 0.7rem; font-weight: 700; color: var(--muted);
+    }
+    .kpi-tile .kpi-value {
+        font-size: 1.7rem; font-weight: 800; color: var(--text);
+        letter-spacing: -0.02em; line-height: 1.15; margin: 2px 0 6px 0;
+    }
+    .kpi-tile .kpi-sub { font-size: 0.78rem; color: var(--muted); font-weight: 500; }
+
+    .tile-title {
+        font-size: 0.95rem; font-weight: 700; color: var(--text);
+        margin: 2px 0 2px 0; letter-spacing: -0.01em;
+    }
+    .tile-sub { font-size: 0.76rem; color: var(--muted); margin-bottom: 6px; }
+
+    /* Service health rows inside tiles */
+    .svc-row {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 9px 2px; border-bottom: 1px dashed var(--border);
+        font-size: 0.86rem; font-weight: 600; color: #374151;
+    }
+    .svc-row:last-child { border-bottom: none; }
 </style>
 """
 st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
@@ -403,6 +465,65 @@ def style_plotly(fig) -> None:
     )
 
 
+def kpi_tile(icon: str, label: str, value: str, sub: str = "", color: str = "#3B82F6",
+             badge: str = "") -> str:
+    """A self-contained KPI tile (HTML), used on the Home dashboard grid."""
+    badge_html = badge or ""
+    sub_html = f'<div class="kpi-sub">{sub}</div>' if sub else ""
+    return f"""
+    <div class="kpi-tile" style="--tile-color:{color};">
+        <div class="accent-bar"></div>
+        <div class="kpi-top">
+            <div class="kpi-icon">{icon}</div>
+            {badge_html}
+        </div>
+        <div class="kpi-label">{label}</div>
+        <div class="kpi-value">{value}</div>
+        {sub_html}
+    </div>
+    """
+
+
+def donut_gauge(value: float, label: str, color: str = "#3B82F6"):
+    """Small donut gauge (like circular progress charts) for a 0–1 metric."""
+    value = max(0.0, min(float(value), 1.0))
+    fig = go.Figure(go.Pie(
+        values=[value, 1 - value],
+        hole=0.78,
+        marker=dict(colors=[color, "#EEF1F6"]),
+        textinfo="none",
+        sort=False,
+        direction="clockwise",
+        showlegend=False,
+        hoverinfo="skip",
+    ))
+    fig.add_annotation(text=f"<b>{value:.0%}</b>", x=0.5, y=0.54,
+                       font=dict(size=22, color="#111827", family="Inter"),
+                       showarrow=False)
+    fig.add_annotation(text=label, x=0.5, y=0.36,
+                       font=dict(size=11, color="#6B7280", family="Inter"),
+                       showarrow=False)
+    fig.update_layout(
+        margin=dict(l=0, r=0, t=6, b=0),
+        height=160,
+        paper_bgcolor="rgba(0,0,0,0)",
+    )
+    return fig
+
+
+def tile_title(title: str, sub: str = "") -> None:
+    sub_html = f'<div class="tile-sub">{sub}</div>' if sub else ""
+    st.markdown(f'<div class="tile-title">{title}</div>{sub_html}', unsafe_allow_html=True)
+
+
+def tile():
+    """A bordered container styled as a dashboard tile."""
+    try:
+        return st.container(border=True)
+    except TypeError:  # older Streamlit without border kwarg
+        return st.container()
+
+
 def split_log_into_runs(lines: list[str]) -> list[list[str]]:
     """Group raw log lines into pipeline runs.
 
@@ -497,76 +618,206 @@ if page == "Home":
     metadata = get_app_metadata()
     health = get_app_health()
     pipeline_status = get_pipeline_status()
+    history = get_prediction_history()
 
-    # --- Live status strip ---
-    api_state = health.get("status", "unknown")
-    pipe_state = pipeline_status.get("pipeline_status", "unknown")
-    st.markdown(
-        "&nbsp;&nbsp;".join([
-            status_badge(f"API · {api_state}", infer_state(api_state)),
-            status_badge(f"Pipeline · {pipe_state}", infer_state(pipe_state)),
-            status_badge(f"Model · {Path(MODEL_PATH).name if MODEL_PATH else 'none'}",
-                         "ok" if MODEL_PATH else "err"),
-        ]),
-        unsafe_allow_html=True,
-    )
-    st.markdown("<br>", unsafe_allow_html=True)
+    api_state = str(health.get("status", "unknown"))
+    pipe_state = str(pipeline_status.get("pipeline_status", "unknown"))
+    last_run = str(pipeline_status.get("last_pipeline_run", "unknown"))
+    model_name = Path(MODEL_PATH).name if MODEL_PATH else "None"
 
-    section("Key indicators")
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Project", "Telecom Churn")
-    c2.metric("Dataset", "Telco Customer")
-    c3.metric("Model Version", metadata.get("model_version", "unknown"))
-    c4.metric("Total Predictions", len(get_prediction_history()))
-
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    # --- Latest model quality from MLflow ---
-    section("Latest model quality (MLflow)")
-    experiments = get_mlflow_experiments()
+    # Pull latest MLflow metrics once, reused across tiles
     latest_metrics = {}
+    experiments = get_mlflow_experiments()
     if experiments:
         latest_experiment_id = experiments[0].get("experiment_id")
         if latest_experiment_id:
             runs = get_mlflow_runs(latest_experiment_id)
             if runs:
-                latest_run = runs[0]
-                latest_metrics = extract_run_metrics(latest_run)
+                latest_run_obj = runs[0]
+                latest_metrics = extract_run_metrics(latest_run_obj)
                 if not latest_metrics:
-                    run_id = latest_run.get("info", {}).get("run_id")
+                    run_id = latest_run_obj.get("info", {}).get("run_id")
                     if run_id:
                         latest_metrics = get_mlflow_run_metrics(run_id) or {}
-    if latest_metrics:
-        model_metric_cards(latest_metrics)
-    else:
-        st.info("No MLflow run metrics available yet. Train a model to populate this section.")
 
-    st.markdown("---")
+    # ---------------- Row 1 · KPI tiles ----------------
+    k1, k2, k3, k4 = st.columns(4, gap="medium")
+    k1.markdown(kpi_tile(
+        "🧠", "Active Model", model_name,
+        sub=f"Version {metadata.get('model_version', 'unknown')}",
+        color="#3B82F6",
+        badge=status_badge("Deployed" if MODEL_PATH else "Missing",
+                           "ok" if MODEL_PATH else "err"),
+    ), unsafe_allow_html=True)
+    k2.markdown(kpi_tile(
+        "🎯", "Total Predictions", f"{len(history):,}",
+        sub="Served via FastAPI",
+        color="#8B5CF6",
+    ), unsafe_allow_html=True)
+    k3.markdown(kpi_tile(
+        "⚡", "API Service", api_state.capitalize(),
+        sub="FastAPI · /predict endpoint",
+        color="#10B981" if infer_state(api_state) == "ok" else "#F59E0B",
+        badge=status_badge("Live" if infer_state(api_state) == "ok" else api_state,
+                           infer_state(api_state)),
+    ), unsafe_allow_html=True)
+    k4.markdown(kpi_tile(
+        "🔄", "Data Pipeline", pipe_state.capitalize(),
+        sub=f"Last run · {last_run}",
+        color="#FF4B4B" if infer_state(pipe_state) == "err" else "#F59E0B" if infer_state(pipe_state) == "warn" else "#10B981",
+        badge=status_badge(pipe_state, infer_state(pipe_state)),
+    ), unsafe_allow_html=True)
 
-    col_nav, col_ext = st.columns([2, 1], gap="large")
-    with col_nav:
-        section("Quick actions")
-        t1, t2, t3 = st.columns(3)
-        if t1.button("Data Pipeline"):
-            st.session_state.selected_page = "Data Pipeline"
-        if t2.button("Explore EDA"):
-            st.session_state.selected_page = "Exploratory Data Analysis"
-        if t3.button("ML Pipeline"):
-            st.session_state.selected_page = "ML Pipeline"
-        t4, t5, t6 = st.columns(3)
-        if t4.button("Prediction"):
-            st.session_state.selected_page = "Prediction"
-        if t5.button("Monitoring"):
-            st.session_state.selected_page = "Monitoring"
-        if t6.button("View Logs"):
-            st.session_state.selected_page = "Logs"
-        page = st.session_state.selected_page
+    st.markdown("<br>", unsafe_allow_html=True)
 
-    with col_ext:
-        section("External tools")
-        link_button("API Docs (Swagger)", SERVICE_URLS["API Docs"], "FastAPI service reference")
-        link_button("Prefect Dashboard", SERVICE_URLS["Prefect UI"], "Workflow orchestration")
-        link_button("MLflow Tracking", SERVICE_URLS["MLflow UI"], "Experiments & model registry")
+    # ---------------- Row 2 · Model quality gauges + prediction activity ----------------
+    row2_left, row2_right = st.columns([5, 7], gap="medium")
+
+    with row2_left:
+        with tile():
+            tile_title("Model Quality", "Latest MLflow run · key classification metrics")
+            accuracy = find_metric(latest_metrics, "accuracy", "acc")
+            precision = find_metric(latest_metrics, "precision")
+            recall = find_metric(latest_metrics, "recall")
+            if any(v is not None for v in (accuracy, precision, recall)):
+                g1, g2, g3 = st.columns(3)
+                gauges = [
+                    (g1, accuracy, "Accuracy", "#3B82F6"),
+                    (g2, precision, "Precision", "#8B5CF6"),
+                    (g3, recall, "Recall", "#FF4B4B"),
+                ]
+                for col, val, lbl, color in gauges:
+                    with col:
+                        if val is not None:
+                            st.plotly_chart(donut_gauge(val, lbl, color),
+                                            use_container_width=True,
+                                            config={"displayModeBar": False})
+                        else:
+                            st.metric(lbl, "—")
+                f1 = find_metric(latest_metrics, "f1")
+                auc = find_metric(latest_metrics, "roc_auc", "auc")
+                extra = []
+                if f1 is not None:
+                    extra.append(f"F1 **{f1:.3f}**")
+                if auc is not None:
+                    extra.append(f"ROC AUC **{auc:.3f}**")
+                if extra:
+                    st.caption(" · ".join(extra))
+            else:
+                st.info("No MLflow metrics yet — train a model to populate these gauges.")
+
+    with row2_right:
+        with tile():
+            tile_title("Prediction Activity", "Churn probability of recent predictions")
+            if not history.empty and "probability" in history.columns:
+                hist = history.tail(50).reset_index(drop=True).copy()
+                hist["probability"] = pd.to_numeric(hist["probability"], errors="coerce")
+                x_axis = hist["timestamp"] if "timestamp" in hist.columns else hist.index
+                fig = go.Figure()
+                fig.add_trace(go.Scatter(
+                    x=x_axis, y=hist["probability"],
+                    mode="lines+markers",
+                    line=dict(color="#3B82F6", width=2.5, shape="spline"),
+                    marker=dict(size=6, color="#3B82F6"),
+                    fill="tozeroy",
+                    fillcolor="rgba(59,130,246,0.08)",
+                    name="Probability",
+                    hovertemplate="%{y:.2f}<extra></extra>",
+                ))
+                fig.add_hline(y=0.5, line_dash="dot", line_color="#FF4B4B",
+                              annotation_text="risk threshold",
+                              annotation_font_color="#FF4B4B",
+                              annotation_font_size=10)
+                style_plotly(fig)
+                fig.update_layout(height=250, title=None, showlegend=False,
+                                  yaxis=dict(range=[0, 1], gridcolor="#EEF1F6"))
+                st.plotly_chart(fig, use_container_width=True,
+                                config={"displayModeBar": False})
+            else:
+                st.info("No predictions yet — run one from the Prediction page to see activity here.")
+
+    # ---------------- Row 3 · Service health + risk mix + quick actions ----------------
+    r3a, r3b, r3c = st.columns([4, 4, 4], gap="medium")
+
+    with r3a:
+        with tile():
+            tile_title("Service Health", "Live platform components")
+            stats = get_monitoring_stats()
+            services = [
+                ("FastAPI", stats.get("api_status", api_state)),
+                ("MLflow", stats.get("mlflow_status", "Unknown")),
+                ("Prefect", stats.get("prefect_status", "Unknown")),
+                ("Pipeline", pipe_state),
+            ]
+            rows = "".join(
+                f'<div class="svc-row"><span>{name}</span>'
+                f'{status_badge(str(state), infer_state(str(state)))}</div>'
+                for name, state in services
+            )
+            st.markdown(rows, unsafe_allow_html=True)
+
+    with r3b:
+        with tile():
+            tile_title("Risk Mix", "High vs low churn risk in recent predictions")
+            if not history.empty and "risk_level" in history.columns:
+                counts = history["risk_level"].astype(str).value_counts()
+                fig = go.Figure(go.Pie(
+                    labels=counts.index.tolist(),
+                    values=counts.values.tolist(),
+                    hole=0.62,
+                    marker=dict(colors=["#FF4B4B" if str(l).lower().startswith("h")
+                                        else "#3B82F6" for l in counts.index]),
+                    textinfo="percent",
+                    textfont=dict(family="Inter", size=12),
+                ))
+                fig.update_layout(
+                    height=210, margin=dict(l=0, r=0, t=8, b=0),
+                    paper_bgcolor="rgba(0,0,0,0)",
+                    legend=dict(orientation="h", y=-0.1,
+                                font=dict(family="Inter", size=11, color="#6B7280")),
+                )
+                st.plotly_chart(fig, use_container_width=True,
+                                config={"displayModeBar": False})
+            else:
+                st.info("Risk breakdown will appear once predictions are made.")
+
+    with r3c:
+        with tile():
+            tile_title("Quick Actions", "Jump to a workspace")
+            qa = [
+                ("📥 Data Pipeline", "Data Pipeline"),
+                ("📊 Explore EDA", "Exploratory Data Analysis"),
+                ("🤖 ML Pipeline", "ML Pipeline"),
+                ("🎯 Prediction", "Prediction"),
+                ("📈 Monitoring", "Monitoring"),
+                ("📜 Logs", "Logs"),
+            ]
+            for i in range(0, len(qa), 2):
+                b1, b2 = st.columns(2)
+                for col, (label, target) in zip((b1, b2), qa[i:i + 2]):
+                    if col.button(label, key=f"qa_{target}"):
+                        st.session_state.selected_page = target
+            page = st.session_state.selected_page
+
+    # ---------------- Row 4 · Recent predictions + external tools ----------------
+    r4a, r4b = st.columns([8, 4], gap="medium")
+    with r4a:
+        with tile():
+            tile_title("Recent Predictions", "Last five scored customers")
+            if not history.empty:
+                show_cols = [c for c in ("timestamp", "tenure", "monthly_charges",
+                                         "total_charges", "probability", "risk_level")
+                             if c in history.columns]
+                st.dataframe(history.tail(5)[show_cols] if show_cols else history.tail(5),
+                             use_container_width=True, hide_index=True)
+            else:
+                st.info("No prediction history yet.")
+    with r4b:
+        with tile():
+            tile_title("External Tools", "Open platform services")
+            link_button("API Docs (Swagger)", SERVICE_URLS["API Docs"], "FastAPI service reference")
+            link_button("Prefect Dashboard", SERVICE_URLS["Prefect UI"], "Workflow orchestration")
+            link_button("MLflow Tracking", SERVICE_URLS["MLflow UI"], "Experiments & registry")
 
 elif page == "Data Pipeline":
     page_header("Data", "Data Pipeline",
