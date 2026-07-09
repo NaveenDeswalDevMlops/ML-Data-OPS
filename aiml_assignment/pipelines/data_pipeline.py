@@ -199,8 +199,10 @@ def perform_eda(df: pd.DataFrame):
 
     if not numeric_df.empty:
         sample = numeric_df.sample(n=min(200, len(numeric_df)), random_state=42)
+        pairplot_vars = list(sample.columns[:6])
+        logger.info(f"Pairplot variables selected: {pairplot_vars}")
         try:
-            sns.pairplot(sample)
+            sns.pairplot(sample[pairplot_vars])
             plt.savefig(f"{EDA_DIR}/pairplot.png")
             plt.close()
             logger.info("Pairplot generated")

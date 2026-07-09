@@ -12,3 +12,31 @@
 2026-07-09 11:38:13,946 INFO ml_pipeline Run RandomForest completed with metrics: {'accuracy': 0.7752365930599369, 'precision': 0.6060606060606061, 'recall': 0.46920821114369504, 'f1': 0.5289256198347108, 'roc_auc': 0.7801187572562455}
 2026-07-09 11:38:16,950 INFO ml_pipeline Run LogisticRegression completed with metrics: {'accuracy': 0.7783911671924291, 'precision': 0.625, 'recall': 0.4398826979472141, 'f1': 0.5163511187607573, 'roc_auc': 0.8053396476509536}
 2026-07-09 11:38:16,966 INFO ml_pipeline Pipeline complete. Best Model: RandomForest (F1 Score: 0.5289)
+2026-07-09 17:04:50,517 INFO ml_pipeline MLflow tracking URI set to http://mlflow:5000
+2026-07-09 17:04:50,518 INFO ml_pipeline MLflow experiment set to Customer_Attrition_Prediction
+2026-07-09 17:04:50,518 INFO ml_pipeline Starting ML pipeline
+2026-07-09 17:04:50,518 INFO ml_pipeline Loading processed data from data/processed_data.csv
+2026-07-09 17:04:52,010 INFO ml_pipeline Run RandomForest completed with metrics: {'accuracy': 0.7744479495268138, 'precision': 0.6037735849056604, 'recall': 0.46920821114369504, 'f1': 0.528052805280528, 'roc_auc': 0.7797628651058028}
+2026-07-09 17:04:52,714 INFO ml_pipeline Run LogisticRegression completed with metrics: {'accuracy': 0.7783911671924291, 'precision': 0.625, 'recall': 0.4398826979472141, 'f1': 0.5163511187607573, 'roc_auc': 0.805345974622517}
+2026-07-09 17:04:52,716 INFO ml_pipeline Pipeline complete. Best Model: RandomForest (F1 Score: 0.5281)
+2026-07-09 17:07:14,758 INFO ml_pipeline MLflow tracking URI set to http://mlflow:5000
+2026-07-09 17:07:14,758 INFO ml_pipeline MLflow experiment set to Customer_Attrition_Prediction
+2026-07-09 17:07:14,758 INFO ml_pipeline Starting ML pipeline
+2026-07-09 17:07:14,758 INFO ml_pipeline Loading raw training data from data/raw_data.csv
+2026-07-09 17:07:16,001 INFO ml_pipeline Run RandomForest completed with metrics: {'accuracy': 0.7783911671924291, 'precision': 0.6063829787234043, 'recall': 0.501466275659824, 'f1': 0.5489566613162119, 'roc_auc': 0.7880053273100563}
+2026-07-09 17:07:16,760 INFO ml_pipeline Run LogisticRegression completed with metrics: {'accuracy': 0.7815457413249212, 'precision': 0.6290322580645161, 'recall': 0.4574780058651026, 'f1': 0.5297113752122241, 'roc_auc': 0.8111652067179783}
+2026-07-09 17:07:16,762 INFO ml_pipeline Pipeline complete. Best Model: RandomForest (F1 Score: 0.5490)
+2026-07-09 17:15:03,818 INFO ml_pipeline MLflow tracking URI set to http://mlflow:5000
+2026-07-09 17:15:03,819 INFO ml_pipeline MLflow experiment set to Customer_Attrition_Prediction
+2026-07-09 17:15:03,819 INFO ml_pipeline Starting ML pipeline
+2026-07-09 17:15:03,819 INFO ml_pipeline Loading raw training data from data/raw_data.csv
+2026-07-09 17:15:05,014 INFO ml_pipeline Run RandomForest completed with metrics: {'accuracy': 0.7783911671924291, 'precision': 0.6063829787234043, 'recall': 0.501466275659824, 'f1': 0.5489566613162119, 'roc_auc': 0.7880053273100563}
+2026-07-09 17:15:05,715 INFO ml_pipeline Run LogisticRegression completed with metrics: {'accuracy': 0.7815457413249212, 'precision': 0.6290322580645161, 'recall': 0.4574780058651026, 'f1': 0.5297113752122241, 'roc_auc': 0.8111652067179783}
+2026-07-09 17:15:05,717 INFO ml_pipeline Pipeline complete. Best Model: RandomForest (F1 Score: 0.5490)
+2026-07-09 17:21:38,181 INFO ml_pipeline MLflow tracking URI set to http://mlflow:5000
+2026-07-09 17:21:38,182 INFO ml_pipeline MLflow experiment set to Customer_Attrition_Prediction
+2026-07-09 17:21:38,182 INFO ml_pipeline Starting ML pipeline
+2026-07-09 17:21:38,182 INFO ml_pipeline Loading raw training data from data/raw_data.csv
+2026-07-09 17:21:39,496 INFO ml_pipeline Run RandomForest completed with metrics: {'accuracy': 0.7783911671924291, 'precision': 0.6063829787234043, 'recall': 0.501466275659824, 'f1': 0.5489566613162119, 'roc_auc': 0.7880053273100563}
+2026-07-09 17:21:40,196 INFO ml_pipeline Run LogisticRegression completed with metrics: {'accuracy': 0.7815457413249212, 'precision': 0.6290322580645161, 'recall': 0.4574780058651026, 'f1': 0.5297113752122241, 'roc_auc': 0.8111652067179783}
+2026-07-09 17:21:40,198 INFO ml_pipeline Pipeline complete. Best Model: RandomForest (F1 Score: 0.5490)

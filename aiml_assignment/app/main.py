@@ -4,6 +4,7 @@ from datetime import datetime
 import joblib
 import os
 import json
+import pandas as pd
 from .schemas import PredictionRequest, PredictionResponse
 
 app = FastAPI(title="Customer Attrition API", version="1.0", description="API-driven Cloud Native Solutions")
@@ -58,7 +59,14 @@ def _build_features(request: PredictionRequest, feature_names):
         'SeniorCitizen': int(request.SeniorCitizen),
         'Partner': int(request.Partner),
     }
-    return [[feature_map.get(name, 0.0) for name in feature_names]]
+
+    if len(feature_names) != len(feature_map):
+        raise HTTPException(
+            status_code=500,
+            detail=f"Loaded model expects {len(feature_names)} features, but API supports {len(feature_map)}. Please retrain the model with the current input schema."
+        )
+
+    return [[feature_map[name] for name in feature_names]]
 
 
 def _churn_probability(model, features):

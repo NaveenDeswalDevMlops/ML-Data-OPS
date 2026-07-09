@@ -36,7 +36,7 @@ Premium Tech Support,int64
 Quarter,object
 Referred a Friend,int64
 Satisfaction Score,int64
-Senior Citizen,int64
+SeniorCitizen,int64
 State,object
 Streaming Movies,int64
 Streaming Music,int64

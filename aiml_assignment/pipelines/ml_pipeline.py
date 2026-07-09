@@ -43,16 +43,28 @@ def evaluate_model(model, X_test, y_test, model_name):
 
 def run_ml_pipeline():
     LOG.info("Starting ML pipeline")
-    LOG.info("Loading processed data from data/processed_data.csv")
-    df = pd.read_csv("data/processed_data.csv")
-    
+    LOG.info("Loading raw training data from data/raw_data.csv")
+    if not os.path.exists("data/raw_data.csv"):
+        raise FileNotFoundError("Raw data file not found. Run the data pipeline first to create data/raw_data.csv.")
+
+    df = pd.read_csv("data/raw_data.csv")
+    df = df.rename(columns={
+        'Tenure in Months': 'tenure',
+        'Total Charges': 'TotalCharges',
+        'Monthly Charge': 'MonthlyCharges',
+        'Senior Citizen': 'SeniorCitizen'
+    })
+
+    if 'TotalCharges' in df.columns:
+        df['TotalCharges'] = pd.to_numeric(df['TotalCharges'], errors='coerce')
+
     # --- THE FIX: FORCE BINARY LABELS ---
     # Convert whatever is in 'Churn' to a string, then re-encode to 0 and 1
     le = LabelEncoder()
     df['Churn'] = le.fit_transform(df['Churn'].astype(str))
     print(f"Target labels identified: {df['Churn'].unique()}")
     # ------------------------------------
-    
+
     features = ['tenure', 'MonthlyCharges', 'TotalCharges', 'SeniorCitizen', 'Partner']
     available_features = [f for f in features if f in df.columns]
     X = df[available_features]
