@@ -5,9 +5,14 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-ROOT_DIR = Path(__file__).resolve().parent.parent
-if str(ROOT_DIR) not in sys.path:
-    sys.path.insert(0, str(ROOT_DIR))
+# Make the `dashboard` package importable whether this file sits at the
+# project root (next to the dashboard/ folder) or inside a subfolder.
+CURRENT_DIR = Path(__file__).resolve().parent
+for candidate in (CURRENT_DIR, CURRENT_DIR.parent, CURRENT_DIR.parent.parent):
+    if (candidate / "dashboard").is_dir():
+        if str(candidate) not in sys.path:
+            sys.path.insert(0, str(candidate))
+        break
 
 import mlflow
 import pandas as pd
@@ -41,24 +46,26 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# Professional enterprise dark theme — Inter typeface, muted slate surfaces,
-# a single blue accent, and consistent card / badge components.
+# Light, modern analytics theme — white surfaces, soft shadows, blue + coral
+# accents, and high-contrast slate text (inspired by the Streamlit design system).
 CUSTOM_CSS = """
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
 
     :root {
-        --bg: #0B0E14;
-        --surface: #131824;
-        --surface-2: #1A2130;
-        --border: #242D3F;
-        --text: #E7EBF3;
-        --muted: #8C96AB;
-        --accent: #5B8DEF;
-        --accent-soft: rgba(91, 141, 239, 0.12);
-        --success: #2EBD85;
-        --warning: #E8A23D;
-        --danger: #E5484D;
+        --bg: #F5F7FB;
+        --surface: #FFFFFF;
+        --surface-2: #F8FAFD;
+        --border: #E6EAF2;
+        --text: #111827;
+        --muted: #6B7280;
+        --accent: #3B82F6;
+        --accent-2: #FF4B4B;
+        --accent-soft: rgba(59, 130, 246, 0.08);
+        --success: #16A34A;
+        --warning: #D97706;
+        --danger: #DC2626;
+        --shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 8px 24px rgba(16, 24, 40, 0.06);
     }
 
     html, body, [class*="css"], .stApp {
@@ -66,18 +73,29 @@ CUSTOM_CSS = """
     }
 
     .stApp {
-        background: var(--bg);
+        background:
+            radial-gradient(900px 400px at 85% -10%, rgba(59,130,246,0.10), transparent 60%),
+            radial-gradient(700px 350px at -10% 0%, rgba(255,75,75,0.06), transparent 55%),
+            var(--bg);
         color: var(--text);
     }
 
+    /* Force readable text everywhere (labels, markdown, widgets) */
+    .stApp p, .stApp label, .stApp span, .stApp li,
+    .stMarkdown, [data-testid="stWidgetLabel"] p {
+        color: var(--text);
+    }
+    .stCaption, [data-testid="stCaptionContainer"] p { color: var(--muted) !important; }
+
     /* ---------- Sidebar ---------- */
     [data-testid="stSidebar"] {
-        background-color: #0E121B !important;
+        background-color: #FFFFFF !important;
         border-right: 1px solid var(--border) !important;
     }
+    [data-testid="stSidebar"] * { color: var(--text); }
     [data-testid="stSidebar"] .stRadio label p {
         font-size: 0.92rem;
-        color: var(--text);
+        color: #374151;
     }
     .sidebar-brand {
         display: flex; align-items: center; gap: 10px;
@@ -86,11 +104,12 @@ CUSTOM_CSS = """
         margin-bottom: 10px;
     }
     .sidebar-brand .mark {
-        width: 34px; height: 34px; border-radius: 8px;
-        background: linear-gradient(135deg, #5B8DEF, #7C5BEF);
+        width: 36px; height: 36px; border-radius: 10px;
+        background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 60%, #FF4B4B 130%);
         display: flex; align-items: center; justify-content: center;
-        font-weight: 800; color: white; font-size: 15px;
+        font-weight: 800; color: #fff; font-size: 15px;
         letter-spacing: -0.5px;
+        box-shadow: 0 4px 12px rgba(59,130,246,0.35);
     }
     .sidebar-brand .name { font-weight: 700; font-size: 0.98rem; color: var(--text); line-height: 1.1; }
     .sidebar-brand .sub  { font-size: 0.72rem; color: var(--muted); }
@@ -99,18 +118,18 @@ CUSTOM_CSS = """
     .page-header { margin-bottom: 4px; }
     .page-eyebrow {
         text-transform: uppercase; letter-spacing: 0.14em;
-        font-size: 0.7rem; font-weight: 600; color: var(--accent);
+        font-size: 0.7rem; font-weight: 700; color: var(--accent);
         margin-bottom: 2px;
     }
     .page-title {
-        font-size: 1.65rem; font-weight: 800; color: var(--text);
+        font-size: 1.7rem; font-weight: 800; color: var(--text);
         letter-spacing: -0.02em; margin: 0;
     }
-    .page-desc { color: var(--muted); font-size: 0.92rem; margin-top: 4px; }
+    .page-desc { color: var(--muted); font-size: 0.93rem; margin-top: 4px; }
 
     .section-label {
         text-transform: uppercase; letter-spacing: 0.12em;
-        font-size: 0.72rem; font-weight: 700; color: var(--muted);
+        font-size: 0.72rem; font-weight: 700; color: #94A3B8;
         margin: 6px 0 10px 0;
     }
 
@@ -118,8 +137,14 @@ CUSTOM_CSS = """
     [data-testid="stMetric"] {
         background: var(--surface);
         border: 1px solid var(--border);
-        border-radius: 12px;
+        border-radius: 14px;
         padding: 16px 18px;
+        box-shadow: var(--shadow);
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    [data-testid="stMetric"]:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(16,24,40,0.06), 0 12px 32px rgba(16,24,40,0.10);
     }
     [data-testid="stMetricLabel"] p {
         color: var(--muted) !important;
@@ -131,7 +156,7 @@ CUSTOM_CSS = """
     [data-testid="stMetricValue"] {
         color: var(--text);
         font-size: 1.55rem;
-        font-weight: 700;
+        font-weight: 800;
         letter-spacing: -0.01em;
     }
     [data-testid="stMetricDelta"] { font-size: 0.8rem; }
@@ -142,47 +167,68 @@ CUSTOM_CSS = """
         padding: 4px 12px; border-radius: 999px;
         font-size: 0.78rem; font-weight: 600;
         border: 1px solid var(--border);
-        background: var(--surface-2); color: var(--muted);
+        background: var(--surface); color: var(--muted);
+        box-shadow: 0 1px 2px rgba(16,24,40,0.04);
     }
-    .badge .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
-    .badge.ok      { color: var(--success); border-color: rgba(46,189,133,0.35); background: rgba(46,189,133,0.08); }
+    .badge .dot { width: 7px; height: 7px; border-radius: 50%; background: #9CA3AF; }
+    .badge.ok      { color: #15803D; border-color: #BBE7C9; background: #F0FBF4; }
     .badge.ok .dot { background: var(--success); }
-    .badge.warn      { color: var(--warning); border-color: rgba(232,162,61,0.35); background: rgba(232,162,61,0.08); }
+    .badge.warn      { color: #B45309; border-color: #F3DFB8; background: #FFFAEF; }
     .badge.warn .dot { background: var(--warning); }
-    .badge.err      { color: var(--danger); border-color: rgba(229,72,77,0.35); background: rgba(229,72,77,0.08); }
+    .badge.err      { color: #B91C1C; border-color: #F5C6C6; background: #FEF2F2; }
     .badge.err .dot { background: var(--danger); }
 
     /* ---------- Buttons ---------- */
-    .stButton > button, .stFormSubmitButton > button {
-        background: var(--surface-2);
-        color: var(--text);
+    .stButton > button {
+        background: var(--surface);
+        color: #374151;
         border: 1px solid var(--border);
         border-radius: 10px;
         padding: 0.55rem 1rem;
         font-weight: 600;
         font-size: 0.88rem;
         width: 100%;
-        transition: border-color 0.15s ease, background 0.15s ease;
+        box-shadow: 0 1px 2px rgba(16,24,40,0.05);
+        transition: all 0.15s ease;
     }
-    .stButton > button:hover, .stFormSubmitButton > button:hover {
+    .stButton > button:hover {
         border-color: var(--accent);
+        color: var(--accent);
         background: var(--accent-soft);
-        color: var(--text);
+        transform: translateY(-1px);
     }
+    .stFormSubmitButton > button {
+        background: linear-gradient(90deg, #3B82F6, #6366F1);
+        color: #FFFFFF !important;
+        border: none;
+        border-radius: 10px;
+        padding: 0.6rem 1rem;
+        font-weight: 700;
+        width: 100%;
+        box-shadow: 0 6px 16px rgba(59,130,246,0.35);
+        transition: all 0.15s ease;
+    }
+    .stFormSubmitButton > button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 22px rgba(59,130,246,0.45);
+        color: #FFFFFF !important;
+    }
+    .stFormSubmitButton > button p { color: #FFFFFF !important; }
 
     /* External link buttons */
     .ext-link {
         display: block; text-decoration: none;
         background: var(--surface);
         border: 1px solid var(--border);
-        border-radius: 10px;
+        border-radius: 12px;
         padding: 10px 14px;
         margin-bottom: 8px;
         color: var(--text);
         font-weight: 600; font-size: 0.86rem;
-        transition: border-color 0.15s ease;
+        box-shadow: 0 1px 2px rgba(16,24,40,0.04);
+        transition: all 0.15s ease;
     }
-    .ext-link:hover { border-color: var(--accent); }
+    .ext-link:hover { border-color: var(--accent); transform: translateY(-1px); box-shadow: var(--shadow); }
     .ext-link .arrow { float: right; color: var(--accent); }
     .ext-link .sub { display: block; color: var(--muted); font-size: 0.74rem; font-weight: 500; margin-top: 2px; }
 
@@ -190,9 +236,10 @@ CUSTOM_CSS = """
     .panel {
         background: var(--surface);
         border: 1px solid var(--border);
-        border-radius: 12px;
+        border-radius: 14px;
         padding: 18px 20px;
         margin-bottom: 14px;
+        box-shadow: var(--shadow);
     }
 
     /* ---------- Data / inputs ---------- */
@@ -200,17 +247,18 @@ CUSTOM_CSS = """
         background: var(--surface);
         border: 1px solid var(--border);
         border-radius: 12px;
+        box-shadow: 0 1px 2px rgba(16,24,40,0.04);
     }
     .stTextArea textarea {
         font-family: 'JetBrains Mono', monospace !important;
         font-size: 0.8rem !important;
-        background: #0D111A !important;
-        color: #C7D0E0 !important;
+        background: #F8FAFC !important;
+        color: #334155 !important;
         border: 1px solid var(--border) !important;
         border-radius: 10px !important;
     }
     .stSelectbox > div > div, .stTextInput > div > div, .stNumberInput > div > div {
-        background: var(--surface-2);
+        background: var(--surface);
         border-radius: 8px;
     }
 
@@ -222,10 +270,16 @@ CUSTOM_CSS = """
         background: var(--surface);
         border: 1px solid var(--border);
         border-radius: 12px;
+        box-shadow: 0 1px 2px rgba(16,24,40,0.04);
     }
 
+    /* Alerts (info/success/error) — soft pastel look */
+    [data-testid="stAlert"] { border-radius: 12px; }
+
     /* Progress bars */
-    .stProgress > div > div > div > div { background: var(--accent); }
+    .stProgress > div > div > div > div {
+        background: linear-gradient(90deg, #3B82F6, #6366F1);
+    }
 </style>
 """
 st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
@@ -331,7 +385,7 @@ def metrics_bar_chart(metrics: dict, title: str = "Run metrics") -> None:
         return
     df = pd.DataFrame({"metric": list(numeric.keys()), "value": list(numeric.values())})
     fig = px.bar(df, x="metric", y="value", title=title)
-    fig.update_traces(marker_color="#5B8DEF", marker_line_width=0)
+    fig.update_traces(marker_color="#3B82F6", marker_line_width=0)
     style_plotly(fig)
     st.plotly_chart(fig, use_container_width=True)
 
@@ -339,12 +393,13 @@ def metrics_bar_chart(metrics: dict, title: str = "Run metrics") -> None:
 def style_plotly(fig) -> None:
     fig.update_layout(
         paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(family="Inter, sans-serif", color="#C7D0E0", size=12),
-        title_font=dict(size=14, color="#E7EBF3"),
+        plot_bgcolor="#FFFFFF",
+        font=dict(family="Inter, sans-serif", color="#374151", size=12),
+        title_font=dict(size=14, color="#111827"),
         margin=dict(l=10, r=10, t=48, b=10),
-        xaxis=dict(gridcolor="#242D3F", zerolinecolor="#242D3F"),
-        yaxis=dict(gridcolor="#242D3F", zerolinecolor="#242D3F"),
+        xaxis=dict(gridcolor="#EEF1F6", zerolinecolor="#EEF1F6"),
+        yaxis=dict(gridcolor="#EEF1F6", zerolinecolor="#EEF1F6"),
+        colorway=["#3B82F6", "#FF4B4B", "#8B5CF6", "#10B981", "#F59E0B"],
     )
 
 
@@ -562,7 +617,7 @@ elif page == "Exploratory Data Analysis":
     else:
         section("Distribution")
         fig = px.histogram(raw, x=raw.columns[0], title=f"Distribution · {raw.columns[0]}")
-        fig.update_traces(marker_color="#5B8DEF")
+        fig.update_traces(marker_color="#3B82F6")
         style_plotly(fig)
         st.plotly_chart(fig, use_container_width=True)
 
